@@ -1,0 +1,107 @@
+<meta charset="utf-8">
+
+<!-- JS -->
+
+<!-- The ol big boy, jQ -->
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+    crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- Our custom selection script -->
+<script src="selection.js"></script>
+
+<!--CSS -->
+<link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+<link rel="stylesheet" href="selection.css">
+<link rel="stylesheet" href="text_input.css">
+<link rel="stylesheet" href="radio.css">
+
+<!-- HTML -->
+
+<!-- This is the UI for describing a quality issue.
+     IMPORTANT: If you change this, also change html/templates/pilot-1.jinja2
+-->
+<div id="quality-selection" class="quality-selection gradient-border">
+    <i class="fa fa-close" id="close-icon"></i>
+    <p id="selection_text"></p>
+    <!-- <input type="text" id="text_input" name="quality" placeholder="type your problem"> -->   
+    <div id="dropdown-button-container">
+        <div class="form__group field">
+            <input type="text" class="form__field" placeholder="Error Type" name="error_type" list="error_type_list" id='error_type'/>
+            <label for="error_type" class="form__label">Error Type *</label>
+            <datalist id="error_type_list">
+                <option value="Language">
+                <option value="Redundant">
+                <option value="Off-topic">
+                <option value="Contradiction">
+                <option value="Incoherent">
+                <option value="Commonsense">
+                <option value="Encyclopedia">
+                <option value="Reader">
+            </datalist>
+        </div>
+        <div class="form__group field">
+            <input type="text" class="form__field" placeholder="Explanation" name="explanation" id='explanation'/>
+            <label for="explanation" class="form__label">Explanation *</label>
+        </div>
+
+        <div class="radios">
+            <p class="radio-instruction">Severity * <i>(how severe is this error?)</i></p>
+            <label class="radio">
+              <input name="severity" type="radio" value="0">
+              <span>0 (not at all)</span>
+            </label>
+            <label class="radio">
+              <input name="severity" type="radio" value="1">
+              <span>1 (somewhat severe)</span>
+            </label>
+            <label class="radio">
+                <input name="severity" type="radio" value="2">
+                <span>2 (very severe)</span>
+            </label>
+           </div>
+        <div class="buttons">
+            <button id="clear_button" class="clear quality_button">Clear</button>
+            <button id="confirm_button" class="confirm quality_button">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Example situation to be annotated -->
+<div id="situation-0-div" class="outline">
+    <div id="situation-0-prompt-div">
+        <p class="f5 pt1 mt0 mb0">Sytem Prompt (Human Written): </p>
+        <p id="situation-0-prompt" class="f3 pa1 mt0 mb0 prompt">
+            As doctors worry about a coronavirus-and-flu "twin-demic" that could overwhelm the health care system, Americans must contend with another possibility: fighting both viruses at the same time.
+        </p>
+    </div>
+    <div id="situation-0-generation-div">
+        <p class="f5 pt4 mt0 mb0">Continuation (Human or AI Model Written): </p>
+        <p id="situation-0" class="f3 pa1 mt0 paragraph">
+            Paul Campbell, 33, woke up to the stark threat Wednesday morning when he received a series of hateful messages on Twitter. "(I'm worried about) a coronavirus that's going to be big enough to take over a massive amount of people," said Campbell, who has been sick for more than a year. Indeed, it did, breaking apart different nerve centers in the body, brain and nervous system — triggering swaths of paralysis, death or paralysis for tens of thousands of people. And as a result, doctors now have new fears about the "pandemic" danger to which so many Americans are well-accustomed.
+        </p>
+    </div>
+</div>
+<div>
+    <input type="checkbox" id="no_badness" name="no_badness">
+    <label for="no_badness">There is no "badness" in this text!</label>
+</div>
+<div id="situation-0-display" class="situation-display"></div>
+<input type="hidden" name="situation-0" id="situation-0-serialize">
+<input type="hidden" name="situation-0-source-id" value="${situation-0-source}">
+
+<!-- NOTE: Disabling below for now, as just using n_situations = 1. -->
+
+<!--
+<p id="situation-1" class="f3 outline pa4 mt5 paragraph">It's not too late to invest all of your assets.</p>
+<div id="situation-1-display" class="situation-display"></div>
+<input type="hidden" name="situation-1" id="situation-1-serialize">
+<input type="hidden" name="situation-1-source-id" value="${situation-1-source}">
+
+<p id="situation-2" class="f3 outline pa4 mt5 paragraph">It's not too late to invest all of your assets. La la la</p>
+<div id="situation-2-display" class="situation-display"></div>
+<input type="hidden" name="situation-2" id="situation-2-serialize">
+<input type="hidden" name="situation-2-source-id" value="${situation-2-source}">
+-->
