@@ -218,6 +218,7 @@ $(document).ready(function () {
         $('#explanation').val('');
         $("#quality-selection").fadeOut(0.2);
         start_end_pairs = []
+        annotate(C, situation_text["situation-0"])
     });
     $("#situation-0").on("mousedown", function(e){
         pageX = e.pageX;
