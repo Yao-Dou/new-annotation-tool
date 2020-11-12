@@ -60,10 +60,16 @@ class Characters {
             if (character == null) {
                 continue;
             }
-            strings.push(character.serialize(this.situationID));
+            strings.push(character.serialize());
         }
         let vals = strings.join(',');
-        return vals
+        if ($("#no_badness").is(':not(:checked)')) {
+            var situationID = this.situationID
+            let serialize = $('#' + situationID + '-serialize');
+            serialize.attr('value', '[' + vals + ']');
+        } else {
+            old_value = '[' + vals + ']';
+        }
     }
 }
 class CharacterSelection {
@@ -103,6 +109,7 @@ class CharacterSelection {
             .append(removeButton)
             .append(txt);
         span.attr('id', 'quality-span-'+num)
+        // span.addClass('quality-span-'+num)
         span.attr('data-situation-id', situationID)
         span.attr('data-error-type', error_type)
         span.attr('data-severity', severity)
@@ -120,7 +127,7 @@ class CharacterSelection {
         }
         return span;
     }
-    serialize(situationID) {
+    serialize() {
         // let txt = $('#' + situationID).text().substring(start, end);
         // let quality_name = quality_map[situationID][this.num]
         // let new_quality_name = quality_name.replace(/,/g, "_SEP_");
@@ -128,7 +135,7 @@ class CharacterSelection {
         // console.log($('#' + situationID).text())
         // // console.log($('#' + situationID).text().substring(0, 5))
         // console.log($('#' + situationID).text().length)
-        // return '["' + new_quality_name + '",' + this.start + ',' + this.end + ']';
+        return '["' + this.error_type + '","' + this.explanation + '",' + this.severity + ','+ this.start_end_pairs[0][0] + ',' + this.start_end_pairs[0][1] + ']';
     }
 }
 
@@ -140,6 +147,15 @@ let C = new Characters("situation-0", 0);
 let start_end_pairs = []
 let n_situations = 1;
 let situationID;
+
+function comparespan(span_a, span_b) {
+    let index_a = span_a[1]
+    let index_b = span_b[1]
+    if(index_a == index_b) {
+        return span_a[3] - span_b[3]
+    }
+    return index_a - index_b;
+}
 
 function annotate(character, text) {
     let character_selections = character.data
@@ -153,14 +169,6 @@ function annotate(character, text) {
         let start_end_pair = selection.start_end_pairs[0]
         span_list.push([p_span_id, start_end_pair[0], true, num, selection.error_type]);
         span_list.push([p_span_id, start_end_pair[1], false, num, selection.error_type]);
-    }
-    function comparespan(span_a, span_b) {
-        let index_a = span_a[1]
-        let index_b = span_b[1]
-        if(index_a == index_b) {
-            return span_a[3] - span_b[3]
-        }
-        return index_a - index_b;
     }
     // console.log(span_list)
     span_list.sort(comparespan)
@@ -182,9 +190,114 @@ function annotate(character, text) {
             color_class = "Other"
         }
         if(span[2]) {
-            span_to_add = "<span id=\"p-span-" + span[3]+ "\"class=\"annotation border-" + color_class + "\">"
+            // span_to_add = "<span id=\"p-span-" + span[3]+ "\"class=\"annotation border-" + color_class + "\">"
+            span_to_add = "<span class=\"annotation border-" + color_class + " " + span[0]+ "\">"
         } else {
             span_to_add = "</span>"
+            // multiple spans cross together (intersect)
+            for (j = i; j >0; j--) {
+                if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
+                    var previous_color_class = span_list[j-1][4]
+                    if (!original_ontologies.includes(previous_color_class)) {
+                        previous_color_class = "Other"
+                    }
+                    span_to_add += "</span>"
+                } else {
+                    break
+                }
+            }
+            for (j = i; j >0; j--) {
+                if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
+                    var previous_color_class = span_list[j-1][4]
+                    if (!original_ontologies.includes(previous_color_class)) {
+                        previous_color_class = "Other"
+                    }
+                    span_to_add += "<span class=\"annotation border-" + previous_color_class + " p-span-" + span_list[j-1][3]+ "\">"
+                } else {
+                    break
+                }
+            }
+        }
+        new_text += subtxt + span_to_add
+    }
+    if (span_list.length == 0) {
+        new_text += text
+    } else {
+        new_text += text.substring(span_list[span_list.length - 1][1])
+    }
+    document.getElementById("situation-0").innerHTML = new_text
+};
+
+function annotate_select_span(character, text, select_span) {
+    let character_selections = character.data
+    let span_list = []
+    for(selection of character_selections) {
+        if (selection == null) {
+            continue;
+        }
+        let num = selection.num
+        let p_span_id = "p-span-" + num
+        let start_end_pair = selection.start_end_pairs[0]
+        span_list.push([p_span_id, start_end_pair[0], true, num, selection.error_type]);
+        span_list.push([p_span_id, start_end_pair[1], false, num, selection.error_type]);
+    }
+    span_list.push(["select-span--1", select_span[0], true, -1, "select-span"]);
+    span_list.push(["select-span--1", select_span[1], false, -1, "select-span"]);
+    // console.log(span_list)
+    span_list.sort(comparespan)
+    // console.log(span_list)
+    let new_text = ""
+    for(i in span_list) {
+        span = span_list[i]
+        var before_pair_end;
+        if(i == 0) {
+            before_pair_end = 0
+        } else{
+            before_pair_end = span_list[i - 1][1]
+        }
+        start_temp = span[1]
+        subtxt = text.substring(before_pair_end, start_temp)
+        var span_to_add;
+        var color_class = span[4]
+        if (!original_ontologies.includes(color_class)) {
+            color_class = "Other"
+        }
+        if(span[2]) {
+            // span_to_add = "<span id=\"p-span-" + span[3]+ "\"class=\"annotation border-" + color_class + "\">"
+            span_to_add = "<span class=\"annotation border-" + color_class + " " + span[0]+ "\">"
+            if (span[4] == "select-span") {
+                span_to_add = "<span class=\"annotation bg-yellow " + span[0]+ "\">"
+            }
+        } else {
+            span_to_add = "</span>"
+            // multiple spans cross together (intersect)
+            for (j = i; j >0; j--) {
+                if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
+                    var previous_color_class = span_list[j-1][4]
+                    if (!original_ontologies.includes(previous_color_class)) {
+                        previous_color_class = "Other"
+                    }
+                    span_to_add += "</span>"
+                } else {
+                    break
+                }
+            }
+            for (j = i; j >0; j--) {
+                if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
+                    var previous_color_class = span_list[j-1][4]
+                    if (!original_ontologies.includes(previous_color_class)) {
+                        previous_color_class = "Other"
+                    }
+                    if (span_list[j - 1][4] == "select-span") {
+                        span_to_add += "<span class=\"annotation bg-yellow " + span_list[j-1][0] + "\">"
+                    }
+                    else {
+                        span_to_add += "<span class=\"annotation border-" + previous_color_class + " " + span_list[j-1][0]+ "\">"
+                    }
+                } else {
+                    break
+                }
+            }
         }
         new_text += subtxt + span_to_add
     }
@@ -289,7 +402,7 @@ $(document).ready(function () {
                 $('#confirm').prop('disabled', false);
             });
         }
-        // annotate(C, situation_text["situation-0"])
+        annotate_select_span(C, situation_text["situation-0"], [start, end])
         // document.getElementById("text_input").select();
     });
     $('#confirm_button').on("click", function(e) {
@@ -339,7 +452,7 @@ $(document).ready(function () {
         var quality_id = e.target.id
         var situation_id = $(this).attr("data-situation-id")
         var span_num = $(this).attr("data-num")
-        var p_span_id = "#p-span-" + span_num
+        var p_span_id = ".p-span-" + span_num
         $(p_span_id).addClass(color_class);
         // cs = C.data[span_num]
         // var start_end_pair = cs.start_end_pairs[0]
@@ -363,7 +476,7 @@ $(document).ready(function () {
         var quality_id = e.target.id
         var situation_id = $(this).attr("data-situation-id")
         var span_num = $(this).attr("data-num")
-        var p_span_id = "#p-span-" + span_num
+        var p_span_id = ".p-span-" + span_num
         $(p_span_id).removeClass(color_class);
         // document.getElementById(situation_id).innerHTML = situation_text[situation_id]
     });

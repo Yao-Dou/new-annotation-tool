@@ -14,7 +14,7 @@
   }
   
   .radio {
-    float: left;
+    /* float: left; */
     display: block;
     cursor: pointer;
     -webkit-user-select: none;
@@ -23,9 +23,9 @@
             user-select: none;
     text-align: left;
   }
-  .radio + .radio {
+  /* .radio + .radio {
     margin-left: 10px;
-  }
+  } */
   .radio input {
     display: none;
   }
