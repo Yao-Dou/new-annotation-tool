@@ -14,6 +14,8 @@
 <link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+<!-- <link rel="stylesheet" href="index.css"> -->
+<link rel="stylesheet" href="select_box.css">
 <link rel="stylesheet" href="selection.css">
 <link rel="stylesheet" href="text_input.css">
 <link rel="stylesheet" href="radio.css">
@@ -25,46 +27,125 @@
 -->
 <div id="quality-selection" class="quality-selection gradient-border">
     <i class="fa fa-close" id="close-icon"></i>
-    <p id="selection_text"></p>
+    <p id="selection_text" class="selection_text"></p>
     <!-- <input type="text" id="text_input" name="quality" placeholder="type your problem"> -->   
     <div id="dropdown-button-container">
-        <div class="form__group field">
-            <input type="text" class="form__field" placeholder="Error Type" name="error_type" list="error_type_list" id='error_type'/>
-            <label for="error_type" class="form__label">Error Type *</label>
-            <datalist id="error_type_list">
-                <option value="Language">
-                <option value="Redundant">
-                <option value="Off-topic">
-                <option value="Contradiction">
-                <option value="Incoherent">
-                <option value="Commonsense">
-                <option value="Encyclopedia">
-                <option value="Reader">
-            </datalist>
+            <!-- <input class="checkbox" type="checkbox" name="general" id="general">
+            <label class="for-checkbox" for="general"></label> -->
+            <div class="single_part section over-hide z-bigger">
+                <p class="b mb2">Select the error.</p>
+                <div class="container">
+                    <p class="f6 mb2">Factual</p>
+                    <div class="row">
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-1" value="Technical_Jargon">
+                            <label class="for-checkbox-tools" for="error-1" id="error-1-label">
+                                Technical Jargon
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-2" value="Numerical_Error">
+                            <label class="for-checkbox-tools" for="error-2" id="error-2-label">
+                                Numerical Error
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-3" value="Encyclopedic">
+                            <label class="for-checkbox-tools" for="error-3" id="error-3-label">
+                                Wrong: Encyclopedic
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-4" value="Commonsense">
+                            <label class="for-checkbox-tools" for="error-4" id="error-4-label">
+                                Wrong: Commonsense
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-5" value="Needs_Google">
+                            <label class="for-checkbox-tools" for="error-5" id="error-5-label">
+                                Needs Google
+                            </label>
+                        </div>
+                    </div>
+                    <p class="f6 mb2">Language</p>
+                    <div class="row">
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-6" value="Grammar_Usage">
+                            <label class="for-checkbox-tools" for="error-6" id="error-6-label">
+                                Grammar / Usage
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-7" value="Off-prompt">
+                            <label class="for-checkbox-tools" for="error-7" id="error-7-label">
+                                Off-prompt
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_able" type="radio" name="error_type" id="error-8" value="Redundant">
+                            <label class="for-checkbox-tools" for="error-8" id="error-8-label">
+                                Redundant
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_able" type="radio" name="error_type" id="error-9" value="Self-contradiction">
+                            <label class="for-checkbox-tools" for="error-9" id="error-9-label">
+                                Self-contradiction
+                            </label>
+                        </div>
+                        <div class="column">
+                            <input class="checkbox-tools antecedent_no_able" type="radio" name="error_type" id="error-10" value="Incoherent">
+                            <label class="for-checkbox-tools" for="error-10" id="error-10-label">
+                                Incoherent
+                            </label>
+                        </div>
+                    </div>
+                </div>	
+            </div>
+
+        <div class="single_part" id="antecedent_selection" style="display:none;">
+            <p class="b mb2" >Select the antecedent.</p>
+            <p id="selection_antecedent" class="selection_text">Selected antecedents: </p>
         </div>
-        <div class="form__group field">
+        <!-- <div class="form__group field">
             <input type="text" class="form__field" placeholder="Explanation" name="explanation" id='explanation'/>
             <label for="explanation" class="form__label">Explanation *</label>
+        </div> -->
+        <div class="disable single_part" id="explanation_div">
+            <p class="b mb2">Explain your selection.</p>
+            <textarea id="explanation" name="explanation" placeholder="Please write down your explanation!" rows="4" style="width: 100%; resize: none; overflow-y: hidden;"></textarea>
         </div>
+        
 
-        <div class="radios">
-            <p class="radio-instruction">Severity * <i>(how severe is this error?)</i></p>
-            <label class="radio">
-              <input name="severity" type="radio" value="1">
-              <span>1 (almost no impact)</span>
-            </label>
-            <label class="radio">
-              <input name="severity" type="radio" value="2">
-              <span>2 (understandable, but difficult)</span>
-            </label>
-            <label class="radio">
-                <input name="severity" type="radio" value="3">
-                <span>3 (very hard to understand)</span>
-            </label>
-           </div>
-        <div class="buttons">
-            <button id="clear_button" class="clear quality_button">Clear</button>
-            <button id="confirm_button" class="confirm quality_button">Confirm</button>
+        <div class="disable single_part section over-hide z-bigger" id="severity_div">
+            <div class="container">
+                <p class="radio-instruction mb2 b">Select the severity <i>(how severe is this error?).</i></p>
+                <div class="row">
+                    <div class="column-severity">
+                        <input class="checkbox-tools-severity checkbox-tools" type="radio" name="severity" id="severity-1" value="1">
+                        <label class="for-checkbox-tools-severity" for="severity-1" id="severity-1-label">
+                            1 - Almost no impact
+                        </label>
+                    </div>
+                    <div class="column-severity">
+                        <input class="checkbox-tools-severity checkbox-tools" type="radio" name="severity" id="severity-2" value="2">
+                        <label class="for-checkbox-tools-severity" for="severity-2" id="severity-2-label">
+                            2 - Understandable, but difficult
+                        </label>
+                    </div>
+                    <div class="column-severity">
+                        <input class="checkbox-tools-severity checkbox-tools" type="radio" name="severity" id="severity-3" value="3">
+                        <label class="for-checkbox-tools-severity" for="severity-3" id="severity-3-label">
+                            3 - Very hard to understand
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="disable buttons" id="button_div">
+            <!-- <input type="button" id="clear_button" class="clear quality_button" value="Clear"> -->
+            <button id="confirm_button" class="confirm quality_button" type="button">Confirm</button>
         </div>
     </div>
 </div>
@@ -91,17 +172,3 @@
 <div id="situation-0-display" class="situation-display"></div>
 <input type="hidden" name="situation-0" id="situation-0-serialize">
 <input type="hidden" name="situation-0-source-id" value="${situation-0-source}">
-
-<!-- NOTE: Disabling below for now, as just using n_situations = 1. -->
-
-<!--
-<p id="situation-1" class="f3 outline pa4 mt5 paragraph">It's not too late to invest all of your assets.</p>
-<div id="situation-1-display" class="situation-display"></div>
-<input type="hidden" name="situation-1" id="situation-1-serialize">
-<input type="hidden" name="situation-1-source-id" value="${situation-1-source}">
-
-<p id="situation-2" class="f3 outline pa4 mt5 paragraph">It's not too late to invest all of your assets. La la la</p>
-<div id="situation-2-display" class="situation-display"></div>
-<input type="hidden" name="situation-2" id="situation-2-serialize">
-<input type="hidden" name="situation-2-source-id" value="${situation-2-source}">
--->

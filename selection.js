@@ -2,9 +2,30 @@
  * Map from selection id (e.g., "selection-1") to the Characters
  */
 let all_colors = ['blue', 'green', 'red', 'purple', 'pink', 'gold', 'navy', 'orange']
-let original_ontologies = ["Language", "Redundant", "Off-topic", "Contradiction", "Incoherent", "Commonsense", "Encyclopedia", "Reader"]
+let original_ontologies = ["Technical_Jargon", "Numerical_Error", "Encyclopedic", "Commonsense", "Needs_Google", "Grammar_Usage", "Off-prompt", "Redundant", "Self-contradiction", "Incoherent"]
+let black_text_errors_types = ["Commonsense", "Grammar_Usage", "Off-prompt"]
+var error_types_dict = {
+    "Technical_Jargon": "Technical Jargon",
+    "Numerical_Error" : "Numerical Error",
+    "Encyclopedic" : "Wrong: Encyclopedic",
+    "Commonsense" : "Wrong: Commonsense",
+    "Needs_Google" : "Needs Google",
+    "Grammar_Usage" : "Grammar / Usage",
+    "Off-prompt" : "Off-prompt",
+    "Redundant" : "Redundant",
+    "Self-contradiction" : "Self-contradiction",
+    "Incoherent" : "Incoherent"
+};
 var situation_text = {};
 var old_value = ""
+
+function substitute(input_text) {
+    let new_input_text = input_text.replace(/,/g, "_SEP_");
+    new_input_text = new_input_text.replace(/"/g, "_QUOTE_");
+    new_input_text = new_input_text.replace(/</g, "_LEFT_");
+    new_input_text = new_input_text.replace(/>/g, "_RIGHT_");
+    return new_input_text
+}
 
 /**
  * All selected spans
@@ -73,39 +94,46 @@ class Characters {
     }
 }
 class CharacterSelection {
-    constructor(error_type, explanation, severity, start_end_pairs, num) {
+    constructor(error_type, explanation, severity, start_end_pairs, antecedent_start_end_pairs, num) {
         this.error_type = error_type;
         this.explanation = explanation;
         this.severity = severity
         this.start_end_pairs = start_end_pairs
+        this.antecedent_start_end_pairs = antecedent_start_end_pairs
         this.num = num
         this.noticeMeSenpai = false;
     }
     equals(other) {
-        return this.error_type == other.error_type && this.explanation == other.explanation && this.severity == other.severity && JSON.stringify(this.start_end_pairs) === JSON.stringify(other.start_end_pairs);;
+        return this.error_type == other.error_type && this.explanation == other.explanation 
+            && this.severity == other.severity && JSON.stringify(this.start_end_pairs) === JSON.stringify(other.start_end_pairs) && JSON.stringify(this.antecedent_start_end_pairs) === JSON.stringify(other.antecedent_start_end_pairs);
     }
     render(situationID, num) {
-        let error_type = this.error_type, explanation = this.explanation, severity = this.severity, start_end_pairs = this.start_end_pairs; // so they go in the closure
+        let error_type = this.error_type, explanation = this.explanation, severity = this.severity, start_end_pairs = this.start_end_pairs, antecedent_start_end_pairs = this.antecedent_start_end_pairs; // so they go in the closure
         // let txt = $('#' + situationID).text().substring(start, end);
-        let txt = error_type + " (" + severity + "): " + explanation;
+        let txt = error_types_dict[error_type] + " (" + severity + "): " + explanation;
         // let new_input_text = txt.replace(/"/g, "_QUOTE_");
         // new_input_text = new_input_text.replace(/</g, "_LEFT_");
         // new_input_text = new_input_text.replace(/>/g, "_RIGHT_");
+        let color_class= error_type
+        let text_color = "white"
+        let opposite_color = "black"
+        if (black_text_errors_types.includes(color_class)) {
+            text_color = "black"
+            opposite_color = "white"
+        }
+
         let removeButton = $('<button></button>')
-            .addClass('bg-transparent white bn hover-black hover-bg-white br-pill mr1')
+            .addClass('bg-transparent ' + text_color +' bn hover-' + opposite_color + ' hover-bg-' + text_color + ' br-pill mr1')
             .append('✘')
             .on('click', function () {
                 document.getElementById(situationID).innerHTML = situation_text[situationID]
-                C.remove(new CharacterSelection(error_type, explanation, severity, start_end_pairs));
+                C.remove(new CharacterSelection(error_type, explanation, severity, start_end_pairs, antecedent_start_end_pairs));
                 annotate(C, situation_text["situation-0"])
                 C.update();
             });
-        let color_class= error_type
-        if (!original_ontologies.includes(color_class)) {
-            color_class = "Other"
-        }
+
         let span = $('<span></span>')
-            .addClass('b bg-' + color_class + ' white pa2 ma1 br-pill dib quality-span')
+            .addClass('b bg-' + color_class + " " + text_color +' pa2 ma1 br-pill dib quality-span')
             .append(removeButton)
             .append(txt);
         span.attr('id', 'quality-span-'+num)
@@ -115,6 +143,7 @@ class CharacterSelection {
         span.attr('data-severity', severity)
         span.attr('data-explanation', explanation)
         span.attr('data-start-end-pairs', start_end_pairs)
+        span.attr('data-antecedent-start-end-pairs', antecedent_start_end_pairs)
         span.attr('data-num', num)
         // span.attr('data-num', characters_num)
         // if the character needs to be noticed, abide.
@@ -135,7 +164,10 @@ class CharacterSelection {
         // console.log($('#' + situationID).text())
         // // console.log($('#' + situationID).text().substring(0, 5))
         // console.log($('#' + situationID).text().length)
-        return '["' + this.error_type + '","' + this.explanation + '",' + this.severity + ','+ this.start_end_pairs[0][0] + ',' + this.start_end_pairs[0][1] + ']';
+        // console.log($('#' + situationID).text())
+        // console.log($('#' + situationID).text().substring(0, 5))
+        // console.log($('#' + situationID).text().length)
+        return '["' + substitute(this.error_type) + '","' + substitute(this.explanation) + '",' + this.severity + ','+ this.start_end_pairs[0][0] + ',' + this.start_end_pairs[0][1] + ']';
     }
 }
 
@@ -145,6 +177,7 @@ let C = new Characters("situation-0", 0);
 // let start;
 // let end;
 let start_end_pairs = []
+let antecedent_start_end_pairs = []
 let n_situations = 1;
 let situationID;
 
@@ -169,8 +202,16 @@ function annotate(character, text) {
         let start_end_pair = selection.start_end_pairs[0]
         span_list.push([p_span_id, start_end_pair[0], true, num, selection.error_type]);
         span_list.push([p_span_id, start_end_pair[1], false, num, selection.error_type]);
+        let antecedent_start_end_pairs = selection.antecedent_start_end_pairs
+        if (antecedent_start_end_pairs.length > 0) {
+            for(antecedent of antecedent_start_end_pairs) {
+                span_list.push([p_span_id + "_antecedent", antecedent[0], true, num, selection.error_type + "_antecedent"]);
+                span_list.push([p_span_id + "_antecedent", antecedent[1], false, num, selection.error_type + "_antecedent"]);
+            }
+        }
     }
-    // console.log(span_list)
+    // console
+    console.log(span_list)
     span_list.sort(comparespan)
     // console.log(span_list)
     let new_text = ""
@@ -186,9 +227,7 @@ function annotate(character, text) {
         subtxt = text.substring(before_pair_end, start_temp)
         var span_to_add;
         var color_class = span[4]
-        if (!original_ontologies.includes(color_class)) {
-            color_class = "Other"
-        }
+
         if(span[2]) {
             // span_to_add = "<span id=\"p-span-" + span[3]+ "\"class=\"annotation border-" + color_class + "\">"
             span_to_add = "<span class=\"annotation border-" + color_class + " " + span[0]+ "\">"
@@ -198,9 +237,6 @@ function annotate(character, text) {
             for (j = i; j >0; j--) {
                 if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
                     var previous_color_class = span_list[j-1][4]
-                    if (!original_ontologies.includes(previous_color_class)) {
-                        previous_color_class = "Other"
-                    }
                     span_to_add += "</span>"
                 } else {
                     break
@@ -209,9 +245,6 @@ function annotate(character, text) {
             for (j = i; j >0; j--) {
                 if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
                     var previous_color_class = span_list[j-1][4]
-                    if (!original_ontologies.includes(previous_color_class)) {
-                        previous_color_class = "Other"
-                    }
                     span_to_add += "<span class=\"annotation border-" + previous_color_class + " p-span-" + span_list[j-1][3]+ "\">"
                 } else {
                     break
@@ -228,7 +261,7 @@ function annotate(character, text) {
     document.getElementById("situation-0").innerHTML = new_text
 };
 
-function annotate_select_span(character, text, select_span) {
+function annotate_select_span(character, text, select_span, select_antecedents) {
     let character_selections = character.data
     let span_list = []
     for(selection of character_selections) {
@@ -240,6 +273,12 @@ function annotate_select_span(character, text, select_span) {
         let start_end_pair = selection.start_end_pairs[0]
         span_list.push([p_span_id, start_end_pair[0], true, num, selection.error_type]);
         span_list.push([p_span_id, start_end_pair[1], false, num, selection.error_type]);
+    }
+    for(l in select_antecedents) {
+        if (select_antecedents[l] != null) {
+            span_list.push(["select-antecedent--" + (l+1), select_antecedents[l][0], true, -1, "select-antecedent"]);
+            span_list.push(["select-antecedent--" + (l+1), select_antecedents[l][1], false, -1, "select-antecedent"]);
+        }
     }
     span_list.push(["select-span--1", select_span[0], true, -1, "select-span"]);
     span_list.push(["select-span--1", select_span[1], false, -1, "select-span"]);
@@ -259,14 +298,14 @@ function annotate_select_span(character, text, select_span) {
         subtxt = text.substring(before_pair_end, start_temp)
         var span_to_add;
         var color_class = span[4]
-        if (!original_ontologies.includes(color_class)) {
-            color_class = "Other"
-        }
         if(span[2]) {
             // span_to_add = "<span id=\"p-span-" + span[3]+ "\"class=\"annotation border-" + color_class + "\">"
             span_to_add = "<span class=\"annotation border-" + color_class + " " + span[0]+ "\">"
             if (span[4] == "select-span") {
                 span_to_add = "<span class=\"annotation bg-yellow " + span[0]+ "\">"
+            }
+            if (span[4] == "select-antecedent") {
+                span_to_add = "<span class=\"annotation bg-light-yellow " + span[0]+ "\">"
             }
         } else {
             span_to_add = "</span>"
@@ -274,9 +313,6 @@ function annotate_select_span(character, text, select_span) {
             for (j = i; j >0; j--) {
                 if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
                     var previous_color_class = span_list[j-1][4]
-                    if (!original_ontologies.includes(previous_color_class)) {
-                        previous_color_class = "Other"
-                    }
                     span_to_add += "</span>"
                 } else {
                     break
@@ -285,11 +321,11 @@ function annotate_select_span(character, text, select_span) {
             for (j = i; j >0; j--) {
                 if (span_list[j - 1][2] && span_list[j-1][3] != span[3]) {
                     var previous_color_class = span_list[j-1][4]
-                    if (!original_ontologies.includes(previous_color_class)) {
-                        previous_color_class = "Other"
-                    }
                     if (span_list[j - 1][4] == "select-span") {
                         span_to_add += "<span class=\"annotation bg-yellow " + span_list[j-1][0] + "\">"
+                    }
+                    if (span_list[j - 1][4] == "select-antecedent") {
+                        span_to_add += "<span class=\"annotation bg-light-yellow " + span_list[j-1][0] + "\">"
                     }
                     else {
                         span_to_add += "<span class=\"annotation border-" + previous_color_class + " " + span_list[j-1][0]+ "\">"
@@ -308,6 +344,35 @@ function annotate_select_span(character, text, select_span) {
     }
     document.getElementById("situation-0").innerHTML = new_text
 };
+
+function list_antecedents() {
+    let display = $('#selection_antecedent').text("Selected antecedents: ");
+    // console.log(antecedent_start_end_pairs)
+    for (a in antecedent_start_end_pairs) {
+        pair = antecedent_start_end_pairs[a]
+        if (pair != null) {
+            start = pair[0]
+            end = pair[1]
+            let txt = situation_text["situation-0"].substring(start, end)
+            let removeButton = $('<button></button>')
+                .addClass('bg-transparent black bn hover-white hover-bg-black br-pill mr1')
+                .attr('antecedent-num', a)
+                .append('✘')
+                .on('click', function () {
+                    antecedent_start_end_pairs[$(this).attr('antecedent-num')] = null
+                    list_antecedents();
+                    // C.remove(new CharacterSelection(error_type, explanation, severity, start_end_pairs));
+                    annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
+                    // C.update();
+                });
+            let span = $('<span></span>')
+                .addClass('bg-light-yellow black pa2 ma1 dib quality-span')
+                .append(removeButton)
+                .append(txt);
+            display.append(span);
+        }
+    }
+}
 
 // script
 $(document).ready(function () {
@@ -331,6 +396,7 @@ $(document).ready(function () {
         $('#explanation').val('');
         $("#quality-selection").fadeOut(0.2);
         start_end_pairs = []
+        antecedent_start_end_pairs = []
         annotate(C, situation_text["situation-0"])
     });
     $("#situation-0").on("mousedown", function(e){
@@ -345,7 +411,6 @@ $(document).ready(function () {
             // highlight across spans
             return;
         }
-        $('#text_input').val('');
         // $('#quality-selection').fadeOut(1);
         let range = selection.getRangeAt(0);
         let [start, end] = [range.startOffset, range.endOffset];
@@ -376,60 +441,90 @@ $(document).ready(function () {
         if (start >= end) {
             return;
         }
-        start_end_pairs = []
-        start_end_pairs.push([start, end])
-        let selection_text = "Selected Span: <a class=\"selection_a\">";
-        start = start_end_pairs[0][0]
-        end = start_end_pairs[0][1]
-        let select_text = $('#' + situationID).text().substring(start, end)
-        selection_text += select_text + "</a>"
-        // if (start_end_pairs.length != 1) {
-        //     for (pair of start_end_pairs.slice(1)) {
-        //         start = pair[0]
-        //         end = pair[1]
-        //         let select_text = $('#' + situationID).text().substring(start, end)
-        //         selection_text += ", <a class=\"selection_a\">" + select_text + "</a>"
-        //     }
-        // }
-        document.getElementById("selection_text").innerHTML = selection_text
-        // console.log(start_end_pairs.length)
-        if (start_end_pairs.length == 1) {
+        if ($("#antecedent_selection").first().is(":hidden")) {
+            start_end_pairs = []
+            antecedent_start_end_pairs = []
+            start_end_pairs.push([start, end])
+            let selection_text = "Selected span: <a class=\"selection_a\">";
+            start = start_end_pairs[0][0]
+            end = start_end_pairs[0][1]
+            let select_text = $('#' + situationID).text().substring(start, end)
+            selection_text += select_text + "</a>"
+            // if (start_end_pairs.length != 1) {
+            //     for (pair of start_end_pairs.slice(1)) {
+            //         start = pair[0]
+            //         end = pair[1]
+            //         let select_text = $('#' + situationID).text().substring(start, end)
+            //         selection_text += ", <a class=\"selection_a\">" + select_text + "</a>"
+            //     }
+            // }
+            document.getElementById("selection_text").innerHTML = selection_text
             $('#quality-selection').css({
                 'display': "inline-block",
                 'left': pageX - 45,
                 'top' : pageY + 20
             }).fadeIn(200, function() {
-                $('#confirm').prop('disabled', false);
+                $("input:radio[name='severity']").prop('checked', false);
+                $("input:radio[name='error_type']").prop('checked', false);
+                $('#explanation').val('');
+                $('#confirm_button').prop('disabled', false);
+                $("#button_div").addClass("disable");
+                $("#severity_div").addClass("disable");
+                $("#explanation_div").addClass("disable");
             });
+            annotate_select_span(C, situation_text["situation-0"], [start, end], antecedent_start_end_pairs)
+        } else {  
+            $("#explanation_div").removeClass("disable");
+            antecedent_start_end_pairs.push([start, end])
+            list_antecedents()
+            // let selection_text = "Selected antecedents: <a class=\"selection_a_antecedent\">";
+            // start = antecedent_start_end_pairs[0][0]
+            // end = antecedent_start_end_pairs[0][1]
+            // let select_text = $('#' + situationID).text().substring(start, end)
+            // selection_text += select_text + "</a>"
+            // if (antecedent_start_end_pairs.length != 1) {
+            //     for (pair of antecedent_start_end_pairs.slice(1)) {
+            //         start = pair[0]
+            //         end = pair[1]
+            //         let select_text = $('#' + situationID).text().substring(start, end)
+            //         selection_text += ", <a class=\"selection_a_antecedent\">" + select_text + "</a>"
+            //         annotate_select_span(C, situation_text["situation-0"], [start, end])
+            //     }
+            // }
+            // document.getElementById("selection_antecedent").innerHTML = selection_text
+            annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
         }
-        annotate_select_span(C, situation_text["situation-0"], [start, end])
-        // document.getElementById("text_input").select();
     });
     $('#confirm_button').on("click", function(e) {
         // var disabled = $(this).prop("disabled")
 
         // get text input value
-        var error_type = document.getElementById("error_type").value;
-        var explanation = document.getElementById("explanation").value;
+        var error_type = $('input[name="error_type"]:checked').val();
+        var explanation = $("textarea#explanation").val();
         var severity = $('input[name="severity"]:checked').val();
         if (error_type === "" || explanation === "" ||  severity === undefined) {
-            alert("Error Type, Explanation, and Severisty are required!")
+            alert("Error Type, Explanation, and Severity are required!")
             return false
         }
         let display = $('#' + situationID + "-display")
         display.attr('id', situationID + '-display')
         display.attr('data-situation-id', situationID)
-        C.add(new CharacterSelection(error_type, explanation, severity, start_end_pairs, C.data.length));
+        C.add(new CharacterSelection(error_type, explanation, severity, start_end_pairs, antecedent_start_end_pairs, C.data.length));
 
         C.update();
         $('#quality-selection').fadeOut(1, function() {
-            $('#confirm').prop('disabled', true);
+            $('#confirm_button').prop('disabled', true);
             $("input:radio[name='severity']").prop('checked', false);
-            $('#error_type').val('');
+            $("input:radio[name='error_type']").prop('checked', false);
             $('#explanation').val('');
+            $("#button_div").addClass("disable");
+            $("#severity_div").addClass("disable");
+            $("#explanation_div").addClass("disable");
         });
         start_end_pairs = []
+        antecedent_start_end_pairs = []
         annotate(C, situation_text["situation-0"])
+        // console.log(C)
     });
     // $(document).on('focusout','.quality',function(e){
     //     var situation_id = $(this).attr("data-situation-id")
@@ -445,15 +540,15 @@ $(document).ready(function () {
         // $(this).css("color","black")
         // $(this).css("background-color","white")
         var color_class = $(this).attr("data-error-type")
-        if (!original_ontologies.includes(color_class)) {
-            color_class = "Other"
-        }
         // $(this).removeClass(color_class)
         var quality_id = e.target.id
         var situation_id = $(this).attr("data-situation-id")
         var span_num = $(this).attr("data-num")
         var p_span_id = ".p-span-" + span_num
         $(p_span_id).addClass(color_class);
+        var antecedent_color_class= color_class+"_antecedent"
+        var antecedent_p_span_id = ".p-span-" + span_num + "_antecedent"
+        $(antecedent_p_span_id).addClass(antecedent_color_class);
         // cs = C.data[span_num]
         // var start_end_pair = cs.start_end_pairs[0]
         // let text = document.getElementById(situation_id).innerHTML
@@ -469,15 +564,15 @@ $(document).ready(function () {
     $(document).on('mouseout','.quality-span',function(e){
         // $(this).css("color","white")
         var color_class = $(this).attr("data-error-type")
-        if (!original_ontologies.includes(color_class)) {
-            color_class = "Other"
-        }
         // $(this).addClass(color_class)
         var quality_id = e.target.id
         var situation_id = $(this).attr("data-situation-id")
         var span_num = $(this).attr("data-num")
         var p_span_id = ".p-span-" + span_num
         $(p_span_id).removeClass(color_class);
+        var antecedent_color_class= color_class+"_antecedent"
+        var antecedent_p_span_id = ".p-span-" + span_num + "_antecedent"
+        $(antecedent_p_span_id).removeClass(antecedent_color_class);
         // document.getElementById(situation_id).innerHTML = situation_text[situation_id]
     });
    
@@ -492,17 +587,55 @@ $(document).ready(function () {
     
     // clear button in the quality select box
     $("#clear_button").on("click", function(){
+        $("input:radio[name='error_type']").prop('checked', false);
         $("input:radio[name='severity']").prop('checked', false);
         $('#error_type').val('');
         $('#explanation').val('');
-    })
-    // $("#text_input").on('keydown',function(e) {
-    //     var disabled = $('#confirm').prop("disabled")
+    });
+
+    $(document).on('click','.antecedent_able',function(e){
+        $("#antecedent_selection").slideDown("fast");
+        antecedent_start_end_pairs = []
+        annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
+        document.getElementById("selection_antecedent").innerHTML = "Selected antecedents: "
+        $("#severity_div").addClass("disable");
+        $("#explanation_div").addClass("disable");
+    });
+
+    $(document).on('click','.antecedent_no_able',function(e){
+        $("#antecedent_selection").slideUp("fast");
+        antecedent_start_end_pairs = []
+        annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
+        document.getElementById("selection_antecedent").innerHTML = "Selected antecedents: "
+        $("#explanation_div").removeClass("disable");
+        $("#severity_div").addClass("disable");
+        // $("#explanation_div").addClass("disable");
+    });
+
+    $("#explanation").on('change keyup paste', function() {
+        $("#severity_div").removeClass("disable");
+    });
+
+    $(document).on('click','.checkbox-tools-severity',function(e){
+        $("#button_div").removeClass("disable");
+    });
+
+
+
+
+    // $("#quality-selection").on('keydown',function(e) {
+    //     var disabled = $('#confirm_button').prop("disabled")
     //     if(e.key === "Enter" && !disabled) {
-    //         event.preventDefault();
-    //         $('#confirm').click();
+    //         e.preventDefault();
+    //         $('#confirm_button').click();
     //     }
     // });
+    $(document).on("keypress", function(e){
+          if (e.key === "Enter") {
+            e.preventDefault();
+          }
+    });
+
     $( function() {
         $( "#quality-selection" ).draggable();
       } );

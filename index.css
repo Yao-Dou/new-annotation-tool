@@ -145,6 +145,7 @@ span[data-uid="005"] { border-color:#add8e6; } */
     min-width: 300px;
     max-width: 400px;
     margin: 20px;
+    z-index: 1;
 }
 
 #dropdown-button-container {
@@ -278,6 +279,10 @@ span[data-uid="005"] { border-color:#add8e6; } */
 }
 
 /*for div border animation*/
+/* .gradient-border {
+  border: 2px solid;
+  border-image: linear-gradient(to right, #2B32B2, #1488CC) 2;
+} */
 .gradient-border {
     --borderWidth: 3px;
     background: #1D1F20;
@@ -287,16 +292,15 @@ span[data-uid="005"] { border-color:#add8e6; } */
   .gradient-border:after {
     content: '';
     position: absolute;
-    top: calc(-1 * var(--borderWidth));
-    left: calc(-1 * var(--borderWidth));
-    height: calc(100% + var(--borderWidth) * 2);
-    width: calc(100% + var(--borderWidth) * 2);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 4px;
     background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82);
-    border-radius: calc(2 * var(--borderWidth));
-    z-index: -1;
-    -webkit-animation: animatedgradient 3.5s ease alternate infinite;
-            animation: animatedgradient 3.5s ease alternate infinite;
     background-size: 300% 300%;
+    clip-path: polygon(0% 100%, 3px 100%, 3px 3px, calc(100% - 3px) 3px, calc(100% - 3px) calc(100% - 3px), 3px calc(100% - 3px), 3px 100%, 100% 100%, 100% 0%, 0% 0%);
+    animation: animatedgradient 4s ease-in-out infinite;
   }
 
 
@@ -459,3 +463,14 @@ span[data-uid="005"] { border-color:#add8e6; } */
     border-right-color: #6DD5AD;  */
   }
   
+  #p_button {
+    max-width: 1140px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .submit_button {
+    width: 100%;
+    margin: 0;
+    z-index: 0;
+  }
