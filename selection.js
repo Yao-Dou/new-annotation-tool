@@ -144,6 +144,7 @@ class CharacterSelection {
         span.attr('data-explanation', explanation)
         span.attr('data-start-end-pairs', start_end_pairs)
         span.attr('data-antecedent-start-end-pairs', antecedent_start_end_pairs)
+        console.log(antecedent_start_end_pairs)
         span.attr('data-num', num)
         // span.attr('data-num', characters_num)
         // if the character needs to be noticed, abide.
@@ -167,7 +168,7 @@ class CharacterSelection {
         // console.log($('#' + situationID).text())
         // console.log($('#' + situationID).text().substring(0, 5))
         // console.log($('#' + situationID).text().length)
-        return '["' + substitute(this.error_type) + '","' + substitute(this.explanation) + '",' + this.severity + ','+ this.start_end_pairs[0][0] + ',' + this.start_end_pairs[0][1] + ']';
+        return '["' + substitute(this.error_type) + '","' + substitute(this.explanation) + '",' + this.severity + ','+ this.start_end_pairs[0][0] + ',' + this.start_end_pairs[0][1] + ',[' + this.antecedent_start_end_pairs + ']]';
     }
 }
 
@@ -280,8 +281,10 @@ function annotate_select_span(character, text, select_span, select_antecedents) 
             span_list.push(["select-antecedent--" + (l+1), select_antecedents[l][1], false, -1, "select-antecedent"]);
         }
     }
-    span_list.push(["select-span--1", select_span[0], true, -1, "select-span"]);
-    span_list.push(["select-span--1", select_span[1], false, -1, "select-span"]);
+    if (select_span !== undefined) {
+        span_list.push(["select-span--1", select_span[0], true, -1, "select-span"]);
+        span_list.push(["select-span--1", select_span[1], false, -1, "select-span"]);
+    }
     // console.log(span_list)
     span_list.sort(comparespan)
     // console.log(span_list)
@@ -374,6 +377,19 @@ function list_antecedents() {
     }
 }
 
+function disable_everything() {
+    // $('#confirm_button').prop('disabled', true);
+    $("input:radio[name='severity']").prop('checked', false);
+    $("input:radio[name='error_type']").prop('checked', false);
+    $('#explanation').val('');
+    $("#button_div").addClass("disable");
+    $("#severity_div").addClass("disable");
+    $("#explanation_div").addClass("disable");
+    $("#antecedent_selection").slideUp("fast");
+    // antecedent_start_end_pairs = []
+    // annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
+}
+
 // script
 $(document).ready(function () {
     // build up elements we're working with
@@ -398,6 +414,7 @@ $(document).ready(function () {
         start_end_pairs = []
         antecedent_start_end_pairs = []
         annotate(C, situation_text["situation-0"])
+        disable_everything();
     });
     $("#situation-0").on("mousedown", function(e){
         pageX = e.pageX;
@@ -464,13 +481,7 @@ $(document).ready(function () {
                 'left': pageX - 45,
                 'top' : pageY + 20
             }).fadeIn(200, function() {
-                $("input:radio[name='severity']").prop('checked', false);
-                $("input:radio[name='error_type']").prop('checked', false);
-                $('#explanation').val('');
-                $('#confirm_button').prop('disabled', false);
-                $("#button_div").addClass("disable");
-                $("#severity_div").addClass("disable");
-                $("#explanation_div").addClass("disable");
+                disable_everything()
             });
             annotate_select_span(C, situation_text["situation-0"], [start, end], antecedent_start_end_pairs)
         } else {  
@@ -513,13 +524,7 @@ $(document).ready(function () {
 
         C.update();
         $('#quality-selection').fadeOut(1, function() {
-            $('#confirm_button').prop('disabled', true);
-            $("input:radio[name='severity']").prop('checked', false);
-            $("input:radio[name='error_type']").prop('checked', false);
-            $('#explanation').val('');
-            $("#button_div").addClass("disable");
-            $("#severity_div").addClass("disable");
-            $("#explanation_div").addClass("disable");
+           disable_everything()
         });
         start_end_pairs = []
         antecedent_start_end_pairs = []
@@ -593,23 +598,39 @@ $(document).ready(function () {
         $('#explanation').val('');
     });
 
-    $(document).on('click','.antecedent_able',function(e){
-        $("#antecedent_selection").slideDown("fast");
-        antecedent_start_end_pairs = []
-        annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
-        document.getElementById("selection_antecedent").innerHTML = "Selected antecedents: "
-        $("#severity_div").addClass("disable");
-        $("#explanation_div").addClass("disable");
+    $(".antecedent_able").on('click',function(e){
+        if (!$(this).hasClass("selected")) {
+            $("input[name='error_type']").removeClass("selected")
+            $(this).addClass("selected")
+            $("#antecedent_selection").slideDown("fast");
+            antecedent_start_end_pairs = []
+            annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
+            var id = $(this).attr("id")
+            if (id == "error-8") {
+                document.getElementById("antecedent_select_text").innerHTML = "Select the antecedents (earlier spans of text) that are being repeated."
+            } else if (id == "error-9") {
+                document.getElementById("antecedent_select_text").innerHTML = "Select the antecedents (earlier spans of text) that are being contradicted."
+            }
+            document.getElementById("selection_antecedent").innerHTML = "Selected antecedents: "
+            $("input:radio[name='severity']").prop('checked', false);
+            $('#explanation').val('');
+            $("#button_div").addClass("disable");
+            $("#severity_div").addClass("disable");
+            $("#explanation_div").addClass("disable");
+        }
     });
 
-    $(document).on('click','.antecedent_no_able',function(e){
+    $(".antecedent_no_able").on('click',function(e){
+        $("input[name='error_type']").removeClass("selected")
         $("#antecedent_selection").slideUp("fast");
         antecedent_start_end_pairs = []
         annotate_select_span(C, situation_text["situation-0"], start_end_pairs[0], antecedent_start_end_pairs)
         document.getElementById("selection_antecedent").innerHTML = "Selected antecedents: "
-        $("#explanation_div").removeClass("disable");
+        $("input:radio[name='severity']").prop('checked', false);
+        $('#explanation').val('');
+        $("#button_div").addClass("disable");
         $("#severity_div").addClass("disable");
-        // $("#explanation_div").addClass("disable");
+        $("#explanation_div").removeClass("disable");
     });
 
     $("#explanation").on('change keyup paste', function() {
