@@ -2,11 +2,11 @@
  * Map from selection id (e.g., "selection-1") to the Characters
  */
 let all_colors = ['blue', 'green', 'red', 'purple', 'pink', 'gold', 'navy', 'orange']
-let original_ontologies = ["Technical_Jargon", "Numerical_Error", "Encyclopedic", "Commonsense", "Needs_Google", "Grammar_Usage", "Off-prompt", "Redundant", "Self-contradiction", "Incoherent"]
+let original_ontologies = ["Technical_Jargon", "Bad_Math", "Encyclopedic", "Commonsense", "Needs_Google", "Grammar_Usage", "Off-prompt", "Redundant", "Self-contradiction", "Incoherent"]
 let black_text_errors_types = ["Commonsense", "Grammar_Usage", "Off-prompt"]
 var error_types_dict = {
     "Technical_Jargon": "Technical Jargon",
-    "Numerical_Error" : "Numerical Error",
+    "Bad_Math" : "Bad Math",
     "Encyclopedic" : "Wrong: Encyclopedic",
     "Commonsense" : "Wrong: Commonsense",
     "Needs_Google" : "Needs Google",
@@ -123,7 +123,7 @@ class CharacterSelection {
         }
 
         let removeButton = $('<button></button>')
-            .addClass('bg-transparent ' + text_color +' bn hover-' + opposite_color + ' hover-bg-' + text_color + ' br-pill mr1')
+            .addClass('bg-transparent ' + text_color +' bn hover-' + opposite_color + ' hover-bg-' + text_color + ' br-pill mr1 pointer')
             .append('✘')
             .on('click', function () {
                 document.getElementById(situationID).innerHTML = situation_text[situationID]
@@ -133,7 +133,7 @@ class CharacterSelection {
             });
 
         let span = $('<span></span>')
-            .addClass('b bg-' + color_class + " " + text_color +' pa2 ma1 br-pill dib quality-span')
+            .addClass('b grow bg-' + color_class + " " + text_color +' pa2 ma1 br-pill dib quality-span')
             .append(removeButton)
             .append(txt);
         span.attr('id', 'quality-span-'+num)
@@ -462,7 +462,7 @@ $(document).ready(function () {
             start_end_pairs = []
             antecedent_start_end_pairs = []
             start_end_pairs.push([start, end])
-            let selection_text = "Selected span: <a class=\"selection_a\">";
+            let selection_text = "<b>Selected span:</b> <a class=\"selection_a\">";
             start = start_end_pairs[0][0]
             end = start_end_pairs[0][1]
             let select_text = $('#' + situationID).text().substring(start, end)
@@ -550,10 +550,18 @@ $(document).ready(function () {
         var situation_id = $(this).attr("data-situation-id")
         var span_num = $(this).attr("data-num")
         var p_span_id = ".p-span-" + span_num
-        $(p_span_id).addClass(color_class);
+        $(p_span_id).addClass("bg-"+color_class);
         var antecedent_color_class= color_class+"_antecedent"
         var antecedent_p_span_id = ".p-span-" + span_num + "_antecedent"
-        $(antecedent_p_span_id).addClass(antecedent_color_class);
+        $(antecedent_p_span_id).addClass("bg-"+antecedent_color_class);
+        if (black_text_errors_types.includes(color_class)) {
+            $(p_span_id).addClass("black");
+            $(antecedent_p_span_id).addClass("black")
+        } else {
+            $(p_span_id).addClass("white");
+            $(antecedent_p_span_id).addClass("white")
+        }
+
         // cs = C.data[span_num]
         // var start_end_pair = cs.start_end_pairs[0]
         // let text = document.getElementById(situation_id).innerHTML
@@ -574,10 +582,18 @@ $(document).ready(function () {
         var situation_id = $(this).attr("data-situation-id")
         var span_num = $(this).attr("data-num")
         var p_span_id = ".p-span-" + span_num
-        $(p_span_id).removeClass(color_class);
+        $(p_span_id).removeClass("bg-"+color_class);
         var antecedent_color_class= color_class+"_antecedent"
         var antecedent_p_span_id = ".p-span-" + span_num + "_antecedent"
-        $(antecedent_p_span_id).removeClass(antecedent_color_class);
+        $(antecedent_p_span_id).removeClass("bg-"+antecedent_color_class);
+        if (black_text_errors_types.includes(color_class)) {
+            $(p_span_id).removeClass("black");
+            $(antecedent_p_span_id).removeClass("black")
+        } else {
+            $(p_span_id).removeClass("white");
+            $(antecedent_p_span_id).removeClass("white")
+        }
+
         // document.getElementById(situation_id).innerHTML = situation_text[situation_id]
     });
    

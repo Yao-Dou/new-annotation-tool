@@ -3,6 +3,11 @@
   box-sizing: border-box;
 }
 
+html *
+{
+   font-family: sans-serif;
+}
+
 .bg-Technical_Jargon {
   background-color: #FF6300
 }
@@ -15,15 +20,15 @@
   border-bottom: 3px solid #FF6300;
 }
 
-.bg-Numerical_Error {
+.bg-Bad_Math {
   background-color: #111111
 }
 
-.Numerical_Error {
+.Bad_Math {
   color: #111111
 }
 
-.border-Numerical_Error {
+.border-Bad_Math {
   border-bottom: 3px solid #111111;
 }
 
